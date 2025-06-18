@@ -1,11 +1,12 @@
 """Glob Grep Glance - Three safe tools for agentic code analysis."""
 
 from .common import (
+    FileContent,
+    FileReadResult,
+    FileWindow,
     GlobPattern,
     RegexPattern,
-    SandboxConfig,
-    ViewBounds,
-    ViewBuffer,
+    Sandbox,
 )
 from .glance import GlanceOutput, Glancer
 from .glob import Globber, GlobOutput
@@ -15,9 +16,10 @@ __all__ = [
     # Base models and types
     "GlobPattern",
     "RegexPattern",
-    "SandboxConfig",
-    "ViewBounds",
-    "ViewBuffer",
+    "FileWindow",
+    "FileContent",
+    "FileReadResult",
+    "Sandbox",
     # Glob functionality
     "Globber",
     "GlobOutput",

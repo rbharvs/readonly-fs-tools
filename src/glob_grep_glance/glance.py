@@ -4,19 +4,19 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from .common import SandboxConfig, ViewBounds, ViewBuffer
+from .common import FileContent, FileWindow
 
 
 class GlanceOutput(BaseModel):
     """Output model for glance operations."""
 
-    view: ViewBuffer
+    view: FileContent
     truncated: bool
 
 
-class Glancer(SandboxConfig):
+class Glancer(BaseModel):
     """Safe file viewer with sandbox constraints."""
 
-    def glance(self, file_path: Path, window: ViewBounds) -> GlanceOutput:
+    def glance(self, file_path: Path, window: FileWindow) -> GlanceOutput:
         """View a portion of a file within the specified bounds."""
         raise NotImplementedError("Glance functionality not yet implemented")

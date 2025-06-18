@@ -5,7 +5,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from .common import GlobPattern, SandboxConfig
+from .common import GlobPattern
 
 
 class GlobOutput(BaseModel):
@@ -15,7 +15,7 @@ class GlobOutput(BaseModel):
     truncated: bool
 
 
-class Globber(SandboxConfig):
+class Globber(BaseModel):
     """Safe glob pattern matcher with sandbox constraints."""
 
     def glob(self, glob_pattern: GlobPattern) -> GlobOutput:

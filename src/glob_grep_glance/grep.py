@@ -4,17 +4,17 @@ from typing import List
 
 from pydantic import BaseModel
 
-from .common import GlobPattern, RegexPattern, SandboxConfig, ViewBuffer
+from .common import FileContent, GlobPattern, RegexPattern
 
 
 class GrepOutput(BaseModel):
     """Output model for grep operations."""
 
-    matches: List[ViewBuffer]
+    matches: List[FileContent]
     truncated: bool
 
 
-class Grepper(SandboxConfig):
+class Grepper(BaseModel):
     """Safe content searcher with sandbox constraints."""
 
     def grep(

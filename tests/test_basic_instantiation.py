@@ -4,39 +4,30 @@ from pathlib import Path
 
 import pytest
 
-from glob_grep_glance import Glancer, Globber, Grepper, ViewBounds
+from glob_grep_glance import FileWindow, Glancer, Globber, Grepper
 
 
 def test_globber_instantiation() -> None:
     """Test that Globber can be instantiated with basic parameters."""
-    globber = Globber(sandbox_dir=Path("/tmp"), blocked_files=[])
-    assert globber.sandbox_dir == Path("/tmp")
-    assert globber.blocked_files == []
-    assert globber.max_output_chars == 10000
-    assert globber.allow_hidden is False
+    globber = Globber()
+    assert isinstance(globber, Globber)
 
 
 def test_grepper_instantiation() -> None:
     """Test that Grepper can be instantiated with basic parameters."""
-    grepper = Grepper(sandbox_dir=Path("/tmp"), blocked_files=[])
-    assert grepper.sandbox_dir == Path("/tmp")
-    assert grepper.blocked_files == []
-    assert grepper.max_output_chars == 10000
-    assert grepper.allow_hidden is False
+    grepper = Grepper()
+    assert isinstance(grepper, Grepper)
 
 
 def test_glancer_instantiation() -> None:
     """Test that Glancer can be instantiated with basic parameters."""
-    glancer = Glancer(sandbox_dir=Path("/tmp"), blocked_files=[])
-    assert glancer.sandbox_dir == Path("/tmp")
-    assert glancer.blocked_files == []
-    assert glancer.max_output_chars == 10000
-    assert glancer.allow_hidden is False
+    glancer = Glancer()
+    assert isinstance(glancer, Glancer)
 
 
 def test_globber_method_not_implemented() -> None:
     """Test that Globber.glob raises NotImplementedError."""
-    globber = Globber(sandbox_dir=Path("/tmp"), blocked_files=[])
+    globber = Globber()
     with pytest.raises(
         NotImplementedError, match="Glob functionality not yet implemented"
     ):
@@ -45,7 +36,7 @@ def test_globber_method_not_implemented() -> None:
 
 def test_grepper_method_not_implemented() -> None:
     """Test that Grepper.grep raises NotImplementedError."""
-    grepper = Grepper(sandbox_dir=Path("/tmp"), blocked_files=[])
+    grepper = Grepper()
     with pytest.raises(
         NotImplementedError, match="Grep functionality not yet implemented"
     ):
@@ -54,8 +45,8 @@ def test_grepper_method_not_implemented() -> None:
 
 def test_glancer_method_not_implemented() -> None:
     """Test that Glancer.glance raises NotImplementedError."""
-    glancer = Glancer(sandbox_dir=Path("/tmp"), blocked_files=[])
+    glancer = Glancer()
     with pytest.raises(
         NotImplementedError, match="Glance functionality not yet implemented"
     ):
-        glancer.glance(Path("test.py"), ViewBounds(start_line=1, num_lines=10))
+        glancer.glance(Path("test.py"), FileWindow(line_offset=0, line_count=10))
