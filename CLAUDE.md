@@ -27,10 +27,23 @@ uv run pytest tests/test_specific_file.py  # Run specific test file
 
 ## Project Architecture
 
-This is a Python package called `glob_grep_glance` that provides "three safe tools for agentic code analysis". The project follows a standard Python package structure:
+This is a Python package called `glob_grep_glance` that provides "three safe tools for agentic code analysis". The package implements three main tools with security-focused sandboxed file operations:
 
-- `src/glob_grep_glance/` - Main package code (currently empty, needs implementation)
-- `tests/` - Test files using pytest
-- Configuration uses modern Python tooling (uv, ruff, mypy)
+### Core Components
+- `Globber` - Safe file pattern matching with glob patterns
+- `Grepper` - Safe content search with regex patterns  
+- `Glancer` - Safe file viewing with bounded content access
 
-The CI pipeline runs linting (ruff), formatting checks, type checking (mypy --strict), and tests on every push and PR to main branch.
+### Security Model
+All tools inherit from `SandboxConfig` which enforces:
+- Sandbox directory constraints (`sandbox_dir`)
+- File blocklist (`blocked_files`) 
+- Output size limits (`max_output_chars`)
+- Hidden file access controls (`allow_hidden`)
+
+### Key Types
+- `GlobPattern` and `RegexPattern` - Validated input patterns
+- `ViewBounds` and `ViewBuffer` - Safe file content access
+- Dedicated output models for each tool (`GlobOutput`, `GrepOutput`, `GlanceOutput`)
+
+The project uses Pydantic for data validation and type safety. Configuration uses modern Python tooling (uv, ruff, mypy) with strict type checking enabled.
