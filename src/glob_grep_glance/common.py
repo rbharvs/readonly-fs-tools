@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, List
+from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, Field
 
@@ -40,11 +40,3 @@ class FileReadResult(BaseModel):
 
     contents: str
     truncated: bool
-
-
-class Sandbox(BaseModel):
-    """Configuration and validator for sandboxed file operations."""
-
-    sandbox_dir: Path
-    blocked_files: List[Path]
-    allow_hidden: bool = False

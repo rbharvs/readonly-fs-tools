@@ -2,8 +2,12 @@
 
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from ._budget import OutputBudget
+from ._defaults import StreamingFileReader
+from ._protocols import FileReader
+from ._sandbox import Sandbox
 from .common import FileContent, FileWindow
 
 
@@ -11,12 +15,28 @@ class GlanceOutput(BaseModel):
     """Output model for glance operations."""
 
     view: FileContent
-    truncated: bool
+    truncated: bool = Field(default=False)
 
 
-class Glancer(BaseModel):
+class Glancer:
     """Safe file viewer with sandbox constraints."""
 
-    def glance(self, file_path: Path, window: FileWindow) -> GlanceOutput:
+    def __init__(self, file_reader: FileReader) -> None:
+        self.file_reader = file_reader
+
+    @classmethod
+    def from_sandbox(cls, sandbox: Sandbox) -> "Glancer":
+        """Create Glancer with default dependencies."""
+        return cls(file_reader=StreamingFileReader(sandbox=sandbox))
+
+    def glance(
+        self, file_path: Path, window: FileWindow, budget: OutputBudget
+    ) -> GlanceOutput:
         """View a portion of a file within the specified bounds."""
-        raise NotImplementedError("Glance functionality not yet implemented")
+        # Read the file window using the file reader
+        result = self.file_reader.read_window(file_path, window, budget)
+
+        # Create FileContent from the result
+        view = FileContent(path=file_path, contents=result.contents, window=window)
+
+        return GlanceOutput(view=view, truncated=result.truncated)

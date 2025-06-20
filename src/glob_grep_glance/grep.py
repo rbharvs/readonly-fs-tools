@@ -2,8 +2,12 @@
 
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from ._budget import OutputBudget
+from ._defaults import FilesystemPathEnumerator, StreamingRegexSearcher
+from ._protocols import PathEnumerator, RegexSearcher
+from ._sandbox import Sandbox
 from .common import FileContent, GlobPattern, RegexPattern
 
 
@@ -11,14 +15,56 @@ class GrepOutput(BaseModel):
     """Output model for grep operations."""
 
     matches: List[FileContent]
-    truncated: bool
+    truncated: bool = Field(default=False)
 
 
-class Grepper(BaseModel):
+class Grepper:
     """Safe content searcher with sandbox constraints."""
 
+    def __init__(
+        self, path_enum: PathEnumerator, regex_searcher: RegexSearcher
+    ) -> None:
+        self.path_enum = path_enum
+        self.regex_searcher = regex_searcher
+
+    @classmethod
+    def from_sandbox(cls, sandbox: Sandbox) -> "Grepper":
+        """Create Grepper with default dependencies."""
+        return cls(
+            path_enum=FilesystemPathEnumerator(sandbox=sandbox),
+            regex_searcher=StreamingRegexSearcher(sandbox=sandbox),
+        )
+
     def grep(
-        self, search_regex: RegexPattern, glob_patterns: List[GlobPattern]
+        self,
+        search_regex: RegexPattern,
+        glob_patterns: List[GlobPattern],
+        budget: OutputBudget,
     ) -> GrepOutput:
         """Search for regex pattern within files matching glob patterns."""
-        raise NotImplementedError("Grep functionality not yet implemented")
+        matches = []
+        truncated = False
+
+        # First get all files matching the glob patterns
+        for file_path in self.path_enum.iter_paths(glob_patterns):
+            try:
+                # Search for matches in this file
+                for match in self.regex_searcher.iter_matches(
+                    file_path, search_regex, budget
+                ):
+                    matches.append(match)
+
+                    # Check if budget is exhausted
+                    if budget.remaining <= 0:
+                        truncated = True
+                        break
+
+            except Exception:
+                # Continue to next file if this one fails
+                continue
+
+            # Break out of file loop if budget exhausted
+            if truncated:
+                break
+
+        return GrepOutput(matches=matches, truncated=truncated)
