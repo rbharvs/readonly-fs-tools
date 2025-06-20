@@ -46,14 +46,16 @@ class TestStreamingFileReader:
         test_content = "line 1\nline 2\nline 3\n"
         test_file.write_text(test_content, encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
+        budget = OutputBudget(limit=200)  # Increased to account for file path cost
         window = FileWindow(line_offset=0, line_count=3)
 
         result = reader.read_window(test_file, window, budget)
 
         assert result.contents == test_content
         assert not result.truncated
-        assert budget.remaining == 100 - len(test_content)
+        # Budget remaining = initial - file_path_length - content_length
+        expected_remaining = 200 - len(test_file.as_posix()) - len(test_content)
+        assert budget.remaining == expected_remaining
 
     def test_read_file_with_window_offset(
         self, temp_sandbox: tuple[Path, Sandbox], reader: StreamingFileReader
@@ -131,7 +133,12 @@ class TestStreamingFileReader:
             "short\nmedium line\nvery long line that exceeds budget\n", encoding="utf-8"
         )
 
-        budget = OutputBudget(limit=20)  # Small budget
+        # Calculate budget to allow file path + first two lines but not the third
+        first_two_lines = "short\nmedium line\n"
+        budget_needed = (
+            len(test_file.as_posix()) + len(first_two_lines) + 5
+        )  # +5 buffer
+        budget = OutputBudget(limit=budget_needed)
         window = FileWindow(line_offset=0, line_count=3)
 
         result = reader.read_window(test_file, window, budget)
@@ -328,7 +335,10 @@ class TestStreamingFileReader:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("line1\nline2\nline3\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=12)  # Exactly enough for first two lines (6+6)
+        # Calculate budget: file path + first two lines exactly
+        first_two_lines = "line1\nline2\n"
+        budget_limit = len(test_file.as_posix()) + len(first_two_lines)
+        budget = OutputBudget(limit=budget_limit)
         window = FileWindow(line_offset=0, line_count=3)
 
         result = reader.read_window(test_file, window, budget)
@@ -347,7 +357,8 @@ class TestStreamingFileReader:
         test_content = "héllo wørld 🌍\nünicode tëst ñoño\n"
         test_file.write_text(test_content, encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
+        # Increase budget to account for file path + UTF-8 content
+        budget = OutputBudget(limit=200)
         window = FileWindow(line_offset=0, line_count=2)
 
         result = reader.read_window(test_file, window, budget)
@@ -364,7 +375,8 @@ class TestStreamingFileReader:
         # Write some invalid UTF-8 sequences
         test_file.write_bytes(b"valid text\n\xff\xfe invalid utf8\n more text\n")
 
-        budget = OutputBudget(limit=100)
+        # Increase budget to account for file path + content
+        budget = OutputBudget(limit=200)
         window = FileWindow(line_offset=0, line_count=3)
 
         # Should not crash due to encoding errors (errors="ignore")

@@ -9,7 +9,7 @@ from typing import Iterable, List, Set
 
 from pydantic import BaseModel
 
-from ._budget import OutputBudget
+from ._budget import BudgetExceeded, OutputBudget
 from ._sandbox import Sandbox
 from .common import FileContent, FileReadResult, FileWindow, GlobPattern, RegexPattern
 
@@ -76,6 +76,7 @@ class StreamingFileReader(BaseModel):
 
         try:
             # Open file with UTF-8 encoding and ignore errors for binary files
+            budget.debit(len(file.as_posix()))  # Debit budget for file path length
             with open(file, "r", encoding="utf-8", errors="ignore") as f:
                 # Skip to the starting line offset
                 current_line = 0
@@ -91,13 +92,6 @@ class StreamingFileReader(BaseModel):
                     line = f.readline()
                     if not line:  # EOF reached
                         break
-
-                    # Check if this line would exceed budget
-                    if len(line) > budget.remaining:
-                        truncated = True
-                        break
-
-                    # Line fits in budget, debit and add to contents
                     budget.debit(len(line))
                     contents += line
                     lines_read += 1
@@ -105,6 +99,9 @@ class StreamingFileReader(BaseModel):
         except (OSError, IOError) as e:
             # Re-raise file system errors (like file not found)
             raise e
+
+        except BudgetExceeded:
+            truncated = True
 
         return FileReadResult(contents=contents, truncated=truncated)
 
@@ -118,7 +115,6 @@ class StreamingRegexSearcher(BaseModel):
         self,
         file: Path,
         search_regex: RegexPattern,
-        budget: OutputBudget,
     ) -> Iterable[FileContent]:
         """Yield regex matches from file, one per matching line."""
         # Validate file access through sandbox
@@ -133,13 +129,6 @@ class StreamingRegexSearcher(BaseModel):
                 for line_number, line in enumerate(f):
                     # Check if line matches pattern
                     if compiled_pattern.search(line):
-                        # Check if this line would exceed budget
-                        if len(line) > budget.remaining:
-                            # Skip this line and continue to next
-                            continue
-
-                        # Line fits in budget, debit and yield match
-                        budget.debit(len(line))
                         yield FileContent(
                             path=file,
                             contents=line,

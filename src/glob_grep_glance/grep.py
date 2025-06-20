@@ -4,7 +4,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ._budget import OutputBudget
+from ._budget import BudgetExceeded, OutputBudget
 from ._defaults import FilesystemPathEnumerator, StreamingRegexSearcher
 from ._protocols import PathEnumerator, RegexSearcher
 from ._sandbox import Sandbox
@@ -49,22 +49,17 @@ class Grepper:
         for file_path in self.path_enum.iter_paths(glob_patterns):
             try:
                 # Search for matches in this file
-                for match in self.regex_searcher.iter_matches(
-                    file_path, search_regex, budget
-                ):
+                for match in self.regex_searcher.iter_matches(file_path, search_regex):
+                    budget.debit(len(match.model_dump_json()))
                     matches.append(match)
 
-                    # Check if budget is exhausted
-                    if budget.remaining <= 0:
-                        truncated = True
-                        break
+            except BudgetExceeded:
+                # If budget exceeded, set truncated flag and break
+                truncated = True
+                break
 
             except Exception:
                 # Continue to next file if this one fails
                 continue
-
-            # Break out of file loop if budget exhausted
-            if truncated:
-                break
 
         return GrepOutput(matches=matches, truncated=truncated)
