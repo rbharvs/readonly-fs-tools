@@ -5,7 +5,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ._budget import OutputBudget
+from ._budget import BudgetExceeded, OutputBudget
 from ._defaults import FilesystemPathEnumerator
 from ._protocols import PathEnumerator
 from ._sandbox import Sandbox
@@ -38,13 +38,11 @@ class Globber:
         truncated = False
 
         for path in self.path_enum.iter_paths(glob_patterns):
-            # Check if we have budget remaining
-            if budget.remaining <= 0:
+            try:
+                budget.debit(len(path.as_posix()))  # debit budget by path length
+                paths.append(path)
+            except BudgetExceeded:
                 truncated = True
                 break
-
-            # Count each path as 1 unit towards budget
-            budget.debit(1)
-            paths.append(path)
 
         return GlobOutput(paths=paths, truncated=truncated)

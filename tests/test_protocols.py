@@ -121,14 +121,10 @@ class TestRegexSearcher:
 
         file_path = Path("test.txt")
         search_regex: RegexPattern = r"match"
-        budget = OutputBudget(limit=1000)
-
-        result = list(mock_searcher.iter_matches(file_path, search_regex, budget))
+        result = list(mock_searcher.iter_matches(file_path, search_regex))
 
         assert result == expected_content
-        mock_searcher.iter_matches.assert_called_once_with(
-            file_path, search_regex, budget
-        )
+        mock_searcher.iter_matches.assert_called_once_with(file_path, search_regex)
 
     def test_regex_pattern_type_safety(self) -> None:
         """Test RegexSearcher uses validated RegexPattern type."""
@@ -137,39 +133,10 @@ class TestRegexSearcher:
 
         file_path = Path("test.txt")
         search_regex: RegexPattern = r"\d+"  # Valid regex pattern
-        budget = OutputBudget(limit=1000)
-
-        result = list(mock_searcher.iter_matches(file_path, search_regex, budget))
+        result = list(mock_searcher.iter_matches(file_path, search_regex))
 
         assert result == []
-        mock_searcher.iter_matches.assert_called_once_with(
-            file_path, search_regex, budget
-        )
-
-    def test_budget_aware_streaming(self) -> None:
-        """Test RegexSearcher respects budget constraints during streaming."""
-        mock_searcher = Mock(spec=RegexSearcher)
-        # Simulate budget-limited results
-        limited_content = [
-            FileContent(
-                path=Path("test.txt"),
-                contents="first match",
-                window=FileWindow(line_offset=0, line_count=1),
-            )
-        ]
-        mock_searcher.iter_matches = Mock(return_value=iter(limited_content))
-
-        file_path = Path("test.txt")
-        search_regex: RegexPattern = r"match"
-        budget = OutputBudget(limit=50)  # Limited budget
-
-        result = list(mock_searcher.iter_matches(file_path, search_regex, budget))
-
-        assert len(result) == 1
-        assert result[0].contents == "first match"
-        mock_searcher.iter_matches.assert_called_once_with(
-            file_path, search_regex, budget
-        )
+        mock_searcher.iter_matches.assert_called_once_with(file_path, search_regex)
 
     def test_consistent_parameter_naming(self) -> None:
         """Test RegexSearcher uses consistent parameter naming (search_regex)."""
@@ -178,13 +145,9 @@ class TestRegexSearcher:
 
         file_path = Path("test.txt")
         search_regex: RegexPattern = r"pattern"
-        budget = OutputBudget(limit=1000)
-
         # This test ensures the parameter is named 'search_regex', not 'pattern' or 'regex'
-        mock_searcher.iter_matches(file_path, search_regex, budget)
-        mock_searcher.iter_matches.assert_called_once_with(
-            file_path, search_regex, budget
-        )
+        mock_searcher.iter_matches(file_path, search_regex)
+        mock_searcher.iter_matches.assert_called_once_with(file_path, search_regex)
 
 
 class TestProtocolIntegration:
@@ -204,8 +167,7 @@ class TestProtocolIntegration:
         mock_searcher.iter_matches = Mock(return_value=iter([]))
 
         regex_pattern: RegexPattern = r"\w+"
-        budget = OutputBudget(limit=1000)
-        mock_searcher.iter_matches(Path("test.txt"), regex_pattern, budget)
+        mock_searcher.iter_matches(Path("test.txt"), regex_pattern)
 
         # Verify type-safe calls completed without error
         assert True
@@ -226,7 +188,7 @@ class TestProtocolIntegration:
         # RegexSearcher uses OutputBudget
         mock_searcher = Mock(spec=RegexSearcher)
         mock_searcher.iter_matches = Mock(return_value=iter([]))
-        mock_searcher.iter_matches(Path("test.txt"), r"pattern", budget)
+        mock_searcher.iter_matches(Path("test.txt"), r"pattern")
 
         # Verify both protocols accept the same OutputBudget instance
         assert True

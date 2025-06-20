@@ -7,7 +7,6 @@ from typing import Generator
 
 import pytest
 
-from glob_grep_glance._budget import OutputBudget
 from glob_grep_glance._defaults import StreamingRegexSearcher
 from glob_grep_glance._sandbox import Sandbox, SandboxViolation
 from glob_grep_glance.common import FileContent, FileWindow, RegexPattern
@@ -46,10 +45,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("apple\nbanana\ncherry\napricot\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "ap.*"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 2
         assert matches[0].contents == "apple\n"
@@ -65,14 +63,11 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("cat\ndog\nbird\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "elephant"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 0
-        # Budget should remain unchanged when no matches
-        assert budget.remaining == 100
 
     def test_case_sensitive_matching(
         self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
@@ -82,10 +77,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("Apple\napple\nAPPLE\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "apple"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 1
         assert matches[0].contents == "apple\n"
@@ -99,10 +93,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("Apple\napple\nAPPLE\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "(?i)apple"  # Case insensitive flag
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 3
         assert matches[0].contents == "Apple\n"
@@ -120,10 +113,9 @@ class TestStreamingRegexSearcher:
             encoding="utf-8",
         )
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = r"\w+@\w+\.\w+"  # Simple email pattern
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 2
         assert matches[0].contents == "user1@example.com\n"
@@ -137,73 +129,14 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("start\nmiddle\nend\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = (
             "start.*end"  # Would match across lines in multiline mode
         )
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         # Should not match across lines
         assert len(matches) == 0
-
-    def test_budget_constraint_enforcement(
-        self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
-    ) -> None:
-        """Test that budget constraints are enforced per matching line."""
-        sandbox_dir, _ = temp_sandbox
-        test_file = sandbox_dir / "test.txt"
-        test_file.write_text(
-            "match short\nmatch medium line\nmatch very long line that exceeds budget\n",
-            encoding="utf-8",
-        )
-
-        budget = OutputBudget(limit=30)  # Small budget
-        pattern: RegexPattern = "match"
-
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
-
-        # Should get first two matches but not the third due to budget
-        assert len(matches) == 2
-        assert matches[0].contents == "match short\n"
-        assert matches[1].contents == "match medium line\n"
-
-    def test_budget_exceeded_on_first_match(
-        self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
-    ) -> None:
-        """Test budget exceeded on the very first match."""
-        sandbox_dir, _ = temp_sandbox
-        test_file = sandbox_dir / "test.txt"
-        test_file.write_text(
-            "this is a very long first matching line that exceeds the tiny budget\nshort match\n",
-            encoding="utf-8",
-        )
-
-        budget = OutputBudget(limit=5)  # Very small budget
-        pattern: RegexPattern = "match"
-
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
-
-        # Should get no matches because first match exceeds budget
-        assert len(matches) == 0
-
-    def test_per_line_budget_debit(
-        self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
-    ) -> None:
-        """Test that budget is debited per matching line."""
-        sandbox_dir, _ = temp_sandbox
-        test_file = sandbox_dir / "test.txt"
-        test_file.write_text("match1\nmatch22\nmatch333\n", encoding="utf-8")
-
-        budget = OutputBudget(limit=15)  # Exactly enough for first two matches (7+8)
-        pattern: RegexPattern = "match"
-
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
-
-        assert len(matches) == 2
-        assert matches[0].contents == "match1\n"
-        assert matches[1].contents == "match22\n"
-        assert budget.remaining == 0  # Budget should be exactly consumed
 
     def test_empty_file(
         self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
@@ -213,13 +146,11 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "empty.txt"
         test_file.write_text("", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "anything"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 0
-        assert budget.remaining == 100  # Budget unchanged
 
     def test_single_line_file_with_match(
         self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
@@ -229,10 +160,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "single.txt"
         test_file.write_text("single line with match", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 1
         assert matches[0].contents == "single line with match"
@@ -248,10 +178,9 @@ class TestStreamingRegexSearcher:
         with open(test_file, "w", encoding="utf-8") as f:
             f.write("no newline match")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 1
         assert matches[0].contents == "no newline match"
@@ -265,11 +194,10 @@ class TestStreamingRegexSearcher:
         # Write some binary data with some text that might match
         test_file.write_bytes(b"\x00\x01match\x02\x03\xff\xfe\xfd")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
         # Should not raise an exception due to UTF-8 errors
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         # Content might be garbled but should not crash
         assert isinstance(matches, list)
@@ -283,14 +211,14 @@ class TestStreamingRegexSearcher:
         long_line = "x" * 1000 + "match" + "y" * 1000 + "\n"
         test_file.write_text(long_line + "short match\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=500)  # Budget smaller than first line
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
-        # Should skip first match due to budget and get second
-        assert len(matches) == 1
-        assert matches[0].contents == "short match\n"
+        # Should find both matches since StreamingRegexSearcher doesn't handle budget
+        assert len(matches) == 2
+        assert "match" in matches[0].contents  # Long line with match
+        assert matches[1].contents == "short match\n"
 
     def test_line_numbers_are_zero_based(
         self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
@@ -302,10 +230,9 @@ class TestStreamingRegexSearcher:
             "line0\nline1 match\nline2\nline3 match\n", encoding="utf-8"
         )
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 2
         assert matches[0].window.line_offset == 1  # Second line is offset 1
@@ -319,10 +246,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("match1\nmatch2\nmatch3\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 3
         # Each match should be a separate FileContent object
@@ -342,11 +268,10 @@ class TestStreamingRegexSearcher:
         # Try to search outside sandbox
         outside_file = Path("/etc/passwd")  # System file outside sandbox
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "root"
 
         with pytest.raises(SandboxViolation):
-            list(searcher.iter_matches(outside_file, pattern, budget))
+            list(searcher.iter_matches(outside_file, pattern))
 
     def test_blocked_file_access(self, temp_sandbox: tuple[Path, Sandbox]) -> None:
         """Test that blocked files are rejected."""
@@ -360,11 +285,10 @@ class TestStreamingRegexSearcher:
         )
         searcher = StreamingRegexSearcher(sandbox=sandbox)
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
         with pytest.raises(SandboxViolation):
-            list(searcher.iter_matches(blocked_file, pattern, budget))
+            list(searcher.iter_matches(blocked_file, pattern))
 
     def test_hidden_file_access_denied(
         self, temp_sandbox: tuple[Path, Sandbox]
@@ -378,11 +302,10 @@ class TestStreamingRegexSearcher:
             sandbox=sandbox
         )  # allow_hidden=False by default
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
         with pytest.raises(SandboxViolation):
-            list(searcher.iter_matches(hidden_file, pattern, budget))
+            list(searcher.iter_matches(hidden_file, pattern))
 
     def test_hidden_file_access_allowed(
         self, temp_sandbox: tuple[Path, Sandbox]
@@ -396,10 +319,9 @@ class TestStreamingRegexSearcher:
         sandbox = Sandbox(sandbox_dir=sandbox_dir, blocked_files=[], allow_hidden=True)
         searcher = StreamingRegexSearcher(sandbox=sandbox)
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(hidden_file, pattern, budget))
+        matches = list(searcher.iter_matches(hidden_file, pattern))
 
         assert len(matches) == 1
         assert matches[0].contents == "hidden match content\n"
@@ -411,12 +333,11 @@ class TestStreamingRegexSearcher:
         sandbox_dir, _ = temp_sandbox
         nonexistent_file = sandbox_dir / "does_not_exist.txt"
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "anything"
 
         # Should raise appropriate exception (FileNotFoundError or similar)
         with pytest.raises((FileNotFoundError, OSError)):
-            list(searcher.iter_matches(nonexistent_file, pattern, budget))
+            list(searcher.iter_matches(nonexistent_file, pattern))
 
     def test_invalid_regex_pattern(
         self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
@@ -426,12 +347,11 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("test content\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "[invalid"  # Invalid regex - unclosed bracket
 
         # Should raise re.error when compiling the pattern
         with pytest.raises(re.error):
-            list(searcher.iter_matches(test_file, pattern, budget))
+            list(searcher.iter_matches(test_file, pattern))
 
     def test_special_regex_characters(
         self, temp_sandbox: tuple[Path, Sandbox], searcher: StreamingRegexSearcher
@@ -441,10 +361,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("$100.50\n[important]\n{config}\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = r"\$\d+\.\d+"  # Match currency
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 1
         assert matches[0].contents == "$100.50\n"
@@ -459,10 +378,9 @@ class TestStreamingRegexSearcher:
             "héllo wørld 🌍\nünicode tëst match ñoño\nregular text\n", encoding="utf-8"
         )
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 1
         assert matches[0].contents == "ünicode tëst match ñoño\n"
@@ -482,10 +400,9 @@ class TestStreamingRegexSearcher:
                 else:
                     f.write(f"line {i} without pattern\n")
 
-        budget = OutputBudget(limit=1000)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         # Should find 10 matches (every 100th line)
         assert len(matches) == 10
@@ -502,10 +419,9 @@ class TestStreamingRegexSearcher:
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("match1\nmatch2\nmatch3\n", encoding="utf-8")
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         for match in matches:
             assert match.window.line_count == 1
@@ -521,10 +437,9 @@ class TestStreamingRegexSearcher:
             encoding="utf-8",
         )
 
-        budget = OutputBudget(limit=100)
         pattern: RegexPattern = "match"
 
-        matches = list(searcher.iter_matches(test_file, pattern, budget))
+        matches = list(searcher.iter_matches(test_file, pattern))
 
         assert len(matches) == 2
         assert matches[0].contents == "prefix match suffix\n"

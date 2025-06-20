@@ -24,7 +24,7 @@ class FileWindow(BaseModel):
     """Defines bounds for viewing a portion of a file."""
 
     line_offset: int = Field(ge=0, description="Starting line number (0-based)")
-    line_count: int = Field(ge=1, description="Number of lines to read")
+    line_count: int = Field(ge=0, description="Number of lines to read")
 
 
 class FileContent(BaseModel):

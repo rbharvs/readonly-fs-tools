@@ -35,7 +35,6 @@ class RegexSearcher(Protocol):
         self,
         file: Path,
         search_regex: RegexPattern,
-        budget: OutputBudget,
     ) -> Iterable[FileContent]:
         """Yield regex matches from file, respecting budget constraints."""
         ...
