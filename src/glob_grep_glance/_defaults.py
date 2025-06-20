@@ -8,8 +8,9 @@ from typing import Iterable, List, Set
 
 from pydantic import BaseModel
 
+from ._budget import OutputBudget
 from ._sandbox import Sandbox
-from .common import GlobPattern
+from .common import FileReadResult, FileWindow, GlobPattern
 
 
 class FilesystemPathEnumerator(BaseModel):
@@ -52,3 +53,56 @@ class FilesystemPathEnumerator(BaseModel):
                 if self.sandbox.is_allowed(path):
                     seen_paths.add(path)
                     yield path
+
+
+class StreamingFileReader(BaseModel):
+    """Default implementation of windowed file reading."""
+
+    sandbox: Sandbox
+
+    def read_window(
+        self,
+        file: Path,
+        window: FileWindow,
+        budget: OutputBudget,
+    ) -> FileReadResult:
+        """Read file window with budget constraints."""
+        # Validate file access through sandbox
+        self.sandbox.require_allowed(file)
+
+        contents = ""
+        truncated = False
+
+        try:
+            # Open file with UTF-8 encoding and ignore errors for binary files
+            with open(file, "r", encoding="utf-8", errors="ignore") as f:
+                # Skip to the starting line offset
+                current_line = 0
+                while current_line < window.line_offset:
+                    line = f.readline()
+                    if not line:  # EOF reached before offset
+                        break
+                    current_line += 1
+
+                # Read the requested number of lines
+                lines_read = 0
+                while lines_read < window.line_count:
+                    line = f.readline()
+                    if not line:  # EOF reached
+                        break
+
+                    # Check if this line would exceed budget
+                    if len(line) > budget.remaining:
+                        truncated = True
+                        break
+
+                    # Line fits in budget, debit and add to contents
+                    budget.debit(len(line))
+                    contents += line
+                    lines_read += 1
+
+        except (OSError, IOError) as e:
+            # Re-raise file system errors (like file not found)
+            raise e
+
+        return FileReadResult(contents=contents, truncated=truncated)
