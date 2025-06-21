@@ -27,7 +27,7 @@ uv run pytest tests/test_specific_file.py  # Run specific test file
 
 ## Project Architecture
 
-This is a Python package called `glob_grep_glance` that provides "three safe tools for agentic code analysis". The package implements three main tools with security-focused sandboxed file operations:
+This is a Python package called `readonly_fs_tools` that provides "three safe tools for agentic code analysis". The package implements three main tools with security-focused sandboxed file operations:
 
 ### Core Components
 - `Globber` - Safe file pattern matching with glob patterns
