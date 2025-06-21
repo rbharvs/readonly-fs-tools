@@ -6,16 +6,16 @@ from typing import Generator
 
 import pytest
 
-from glob_grep_glance import (
+from readonly_fs_tools import (
     FileWindow,
-    GlanceOutput,
-    Glancer,
     Globber,
     GlobOutput,
     GrepOutput,
     Grepper,
     OutputBudget,
     Sandbox,
+    Viewer,
+    ViewOutput,
 )
 
 
@@ -64,11 +64,11 @@ class TestPublicAPIIntegration:
         assert grepper.path_enum is not None
         assert grepper.regex_searcher is not None
 
-    def test_glancer_from_sandbox_creation(self, sandbox: Sandbox) -> None:
-        """Test that Glancer can be created from sandbox."""
-        glancer = Glancer.from_sandbox(sandbox)
-        assert isinstance(glancer, Glancer)
-        assert glancer.file_reader is not None
+    def test_viewr_from_sandbox_creation(self, sandbox: Sandbox) -> None:
+        """Test that Viewer can be created from sandbox."""
+        viewr = Viewer.from_sandbox(sandbox)
+        assert isinstance(viewr, Viewer)
+        assert viewr.file_reader is not None
 
     def test_globber_finds_python_files(
         self, sandbox: Sandbox, budget: OutputBudget
@@ -177,49 +177,49 @@ class TestPublicAPIIntegration:
         # Should be truncated due to budget
         assert result.truncated or len(result.matches) > 0
 
-    def test_glancer_reads_file_content(
+    def test_viewr_reads_file_content(
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
-        """Test that Glancer can read file content."""
-        glancer = Glancer.from_sandbox(sandbox)
+        """Test that Viewer can read file content."""
+        viewr = Viewer.from_sandbox(sandbox)
         test_file = sandbox.sandbox_dir / "test1.py"
         window = FileWindow(line_offset=0, line_count=2)
 
-        result = glancer.glance(test_file, window, budget)
+        result = viewr.view(test_file, window, budget)
 
-        assert isinstance(result, GlanceOutput)
+        assert isinstance(result, ViewOutput)
         assert "def hello" in result.view.contents
         assert result.view.path == test_file
         assert result.view.window == window
         assert not result.truncated
 
-    def test_glancer_windowed_reading(
+    def test_viewr_windowed_reading(
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
-        """Test that Glancer respects file windows."""
-        glancer = Glancer.from_sandbox(sandbox)
+        """Test that Viewer respects file windows."""
+        viewr = Viewer.from_sandbox(sandbox)
         test_file = sandbox.sandbox_dir / "test1.py"
 
         # Read only the second line
         window = FileWindow(line_offset=1, line_count=1)
-        result = glancer.glance(test_file, window, budget)
+        result = viewr.view(test_file, window, budget)
 
-        assert isinstance(result, GlanceOutput)
+        assert isinstance(result, ViewOutput)
         assert "print('Hello')" in result.view.contents
         assert (
             "def hello" not in result.view.contents
         )  # First line should not be included
 
-    def test_glancer_budget_truncation(self, sandbox: Sandbox) -> None:
-        """Test that Glancer respects budget limits."""
+    def test_viewr_budget_truncation(self, sandbox: Sandbox) -> None:
+        """Test that Viewer respects budget limits."""
         small_budget = OutputBudget(limit=10)  # Very small budget
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         test_file = sandbox.sandbox_dir / "test1.py"
         window = FileWindow(line_offset=0, line_count=10)
 
-        result = glancer.glance(test_file, window, small_budget)
+        result = viewr.view(test_file, window, small_budget)
 
-        assert isinstance(result, GlanceOutput)
+        assert isinstance(result, ViewOutput)
         # Should be truncated due to budget
         assert result.truncated
 
@@ -240,11 +240,11 @@ class TestPublicAPIIntegration:
 
         # Step 3: Read the first file found
         budget.reset()
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         first_file = glob_result.paths[0]
         window = FileWindow(line_offset=0, line_count=5)
-        glance_result = glancer.glance(first_file, window, budget)
-        assert len(glance_result.view.contents) > 0
+        view_result = viewr.view(first_file, window, budget)
+        assert len(view_result.view.contents) > 0
 
     def test_sandbox_security_blocking_files(self, temp_sandbox: Path) -> None:
         """Test that sandbox properly blocks access to specified files."""
@@ -265,7 +265,7 @@ class TestPublicAPIIntegration:
 
     def test_sandbox_security_outside_directory(self, temp_sandbox: Path) -> None:
         """Test that tools cannot access files outside sandbox directory."""
-        glancer = Glancer.from_sandbox(
+        viewr = Viewer.from_sandbox(
             Sandbox(sandbox_dir=temp_sandbox, blocked_files=[], allow_hidden=False)
         )
 
@@ -275,10 +275,10 @@ class TestPublicAPIIntegration:
         budget = OutputBudget(limit=1000)
 
         # Should raise SandboxViolation
-        from glob_grep_glance._sandbox import SandboxViolation
+        from readonly_fs_tools._sandbox import SandboxViolation
 
         with pytest.raises(SandboxViolation):
-            glancer.glance(outside_file, window, budget)
+            viewr.view(outside_file, window, budget)
 
     def test_usage_example_from_issue(self, sandbox: Sandbox) -> None:
         """Test the exact usage example from the GitHub issue."""

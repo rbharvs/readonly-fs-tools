@@ -1,4 +1,4 @@
-"""Test cases for Glancer FileWindow behavior to ensure returned window reflects actual content."""
+"""Test cases for Viewer FileWindow behavior to ensure returned window reflects actual content."""
 
 import tempfile
 from pathlib import Path
@@ -6,11 +6,11 @@ from typing import Generator
 
 import pytest
 
-from glob_grep_glance import FileWindow, Glancer, OutputBudget, Sandbox
+from readonly_fs_tools import FileWindow, OutputBudget, Sandbox, Viewer
 
 
-class TestGlancerWindowBehavior:
-    """Test that Glancer returns accurate FileWindow information."""
+class TestViewerWindowBehavior:
+    """Test that Viewer returns accurate FileWindow information."""
 
     @pytest.fixture
     def temp_sandbox(self) -> Generator[Path, None, None]:
@@ -39,11 +39,11 @@ class TestGlancerWindowBehavior:
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
         """Test that empty file returns window with line_count=0."""
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         empty_file = sandbox.sandbox_dir / "empty.txt"
         window = FileWindow(line_offset=0, line_count=100)
 
-        result = glancer.glance(empty_file, window, budget)
+        result = viewr.view(empty_file, window, budget)
 
         # Should return window reflecting what was actually read (0 lines)
         assert result.view.window.line_offset == 0
@@ -54,11 +54,11 @@ class TestGlancerWindowBehavior:
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
         """Test requesting more lines than file contains."""
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         one_line_file = sandbox.sandbox_dir / "one_line.txt"
         window = FileWindow(line_offset=0, line_count=5)
 
-        result = glancer.glance(one_line_file, window, budget)
+        result = viewr.view(one_line_file, window, budget)
 
         # Should return window reflecting what was actually read (1 line)
         assert result.view.window.line_offset == 0
@@ -69,11 +69,11 @@ class TestGlancerWindowBehavior:
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
         """Test offset beyond end of file."""
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         three_line_file = sandbox.sandbox_dir / "three_lines.txt"
         window = FileWindow(line_offset=10, line_count=5)
 
-        result = glancer.glance(three_line_file, window, budget)
+        result = viewr.view(three_line_file, window, budget)
 
         # Should return window with line_count=0 since no lines were read
         assert result.view.window.line_offset == 10
@@ -84,11 +84,11 @@ class TestGlancerWindowBehavior:
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
         """Test reading from offset with more lines requested than available."""
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         three_line_file = sandbox.sandbox_dir / "three_lines.txt"
         window = FileWindow(line_offset=2, line_count=5)  # Start at line 2, request 5
 
-        result = glancer.glance(three_line_file, window, budget)
+        result = viewr.view(three_line_file, window, budget)
 
         # Should return window reflecting what was actually read (1 line from offset 2)
         assert result.view.window.line_offset == 2
@@ -99,11 +99,11 @@ class TestGlancerWindowBehavior:
         self, sandbox: Sandbox, budget: OutputBudget
     ) -> None:
         """Test when requested lines exactly matches available lines."""
-        glancer = Glancer.from_sandbox(sandbox)
+        viewr = Viewer.from_sandbox(sandbox)
         three_line_file = sandbox.sandbox_dir / "three_lines.txt"
         window = FileWindow(line_offset=0, line_count=3)
 
-        result = glancer.glance(three_line_file, window, budget)
+        result = viewr.view(three_line_file, window, budget)
 
         # Should return window reflecting what was actually read (3 lines)
         assert result.view.window.line_offset == 0

@@ -1,4 +1,4 @@
-"""Glance functionality for safe file viewing."""
+"""View functionality for safe file viewing."""
 
 from pathlib import Path
 
@@ -11,27 +11,27 @@ from ._sandbox import Sandbox
 from .common import FileContent, FileWindow
 
 
-class GlanceOutput(BaseModel):
-    """Output model for glance operations."""
+class ViewOutput(BaseModel):
+    """Output model for view operations."""
 
     view: FileContent
     truncated: bool = Field(default=False)
 
 
-class Glancer:
+class Viewer:
     """Safe file viewer with sandbox constraints."""
 
     def __init__(self, file_reader: FileReader) -> None:
         self.file_reader = file_reader
 
     @classmethod
-    def from_sandbox(cls, sandbox: Sandbox) -> "Glancer":
-        """Create Glancer with default dependencies."""
+    def from_sandbox(cls, sandbox: Sandbox) -> "Viewer":
+        """Create Viewer with default dependencies."""
         return cls(file_reader=StreamingFileReader(sandbox=sandbox))
 
-    def glance(
+    def view(
         self, file_path: Path, window: FileWindow, budget: OutputBudget
-    ) -> GlanceOutput:
+    ) -> ViewOutput:
         """View a portion of a file within the specified bounds."""
         # Read the file window using the file reader
         result = self.file_reader.read_window(file_path, window, budget)
@@ -41,4 +41,4 @@ class Glancer:
             path=file_path, contents=result.contents, window=result.actual_window
         )
 
-        return GlanceOutput(view=view, truncated=result.truncated)
+        return ViewOutput(view=view, truncated=result.truncated)

@@ -6,10 +6,10 @@ from typing import Generator
 
 import pytest
 
-from glob_grep_glance._budget import OutputBudget
-from glob_grep_glance._defaults import StreamingFileReader
-from glob_grep_glance._sandbox import Sandbox, SandboxViolation
-from glob_grep_glance.common import FileWindow
+from readonly_fs_tools._budget import OutputBudget
+from readonly_fs_tools._defaults import StreamingFileReader
+from readonly_fs_tools._sandbox import Sandbox, SandboxViolation
+from readonly_fs_tools.common import FileWindow
 
 
 class TestStreamingFileReader:

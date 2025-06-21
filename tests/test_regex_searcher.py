@@ -7,9 +7,9 @@ from typing import Generator
 
 import pytest
 
-from glob_grep_glance._defaults import StreamingRegexSearcher
-from glob_grep_glance._sandbox import Sandbox, SandboxViolation
-from glob_grep_glance.common import FileContent, FileWindow, RegexPattern
+from readonly_fs_tools._defaults import StreamingRegexSearcher
+from readonly_fs_tools._sandbox import Sandbox, SandboxViolation
+from readonly_fs_tools.common import FileContent, FileWindow, RegexPattern
 
 
 class TestStreamingRegexSearcher:

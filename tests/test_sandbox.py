@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from glob_grep_glance._sandbox import Sandbox, SandboxViolation
+from readonly_fs_tools._sandbox import Sandbox, SandboxViolation
 
 
 class TestSandboxViolation:

@@ -1,12 +1,21 @@
 [project]
-name = "glob_grep_glance"
+name = "readonly_fs_tools"
 version = "0.1.0"
 description = "Three safe tools for agentic code analysis"
 readme = "README.md"
 requires-python = ">=3.9"
+authors = [{name = "Brett Harvey"}]
+license = "MIT"
+classifiers = []
 dependencies = [
     "pydantic>=2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/rbharvs/readonly-fs-tools"
+Changelog = "https://github.com/rbharvs/readonly-fs-tools/releases"
+Issues = "https://github.com/rbharvs/readonly-fs-tools/issues"
+CI = "https://github.com/rbharvs/readonly-fs-tools/actions"
 
 [dependency-groups]
 dev = [

@@ -1,4 +1,4 @@
-"""Glob Grep Glance - Three safe tools for agentic code analysis."""
+"""Glob Grep View - Three safe tools for agentic code analysis."""
 
 from ._budget import OutputBudget
 from ._sandbox import Sandbox
@@ -9,9 +9,9 @@ from .common import (
     GlobPattern,
     RegexPattern,
 )
-from .glance import GlanceOutput, Glancer
 from .glob import Globber, GlobOutput
 from .grep import GrepOutput, Grepper
+from .view import Viewer, ViewOutput
 
 __all__ = [
     # Base models and types
@@ -28,7 +28,7 @@ __all__ = [
     # Grep functionality
     "Grepper",
     "GrepOutput",
-    # Glance functionality
-    "Glancer",
-    "GlanceOutput",
+    # View functionality
+    "Viewer",
+    "ViewOutput",
 ]
