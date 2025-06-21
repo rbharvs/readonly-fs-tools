@@ -5,8 +5,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ._defaults import FilesystemPathEnumerator
-from ._protocols import PathEnumerator
+from ._internal.path_enumerator import FilesystemPathEnumerator
 from .budget import BudgetExceeded, OutputBudget
 from .common import GlobPattern
 from .sandbox import Sandbox
@@ -22,7 +21,7 @@ class GlobOutput(BaseModel):
 class Globber:
     """Safe glob pattern matcher with sandbox constraints."""
 
-    def __init__(self, path_enum: PathEnumerator) -> None:
+    def __init__(self, path_enum: FilesystemPathEnumerator) -> None:
         self.path_enum = path_enum
 
     @classmethod

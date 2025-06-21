@@ -6,7 +6,7 @@ from typing import Generator
 
 import pytest
 
-from readonly_fs_tools._defaults import StreamingFileReader
+from readonly_fs_tools._internal.file_reader import StreamingFileReader
 from readonly_fs_tools.budget import OutputBudget
 from readonly_fs_tools.common import FileWindow
 from readonly_fs_tools.sandbox import Sandbox, SandboxViolation

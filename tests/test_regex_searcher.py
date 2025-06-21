@@ -7,7 +7,7 @@ from typing import Generator
 
 import pytest
 
-from readonly_fs_tools._defaults import StreamingRegexSearcher
+from readonly_fs_tools._internal.regex_searcher import StreamingRegexSearcher
 from readonly_fs_tools.common import FileContent, FileWindow, RegexPattern
 from readonly_fs_tools.sandbox import Sandbox, SandboxViolation
 

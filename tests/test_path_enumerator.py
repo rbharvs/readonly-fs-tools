@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 from typing import List
 
-from readonly_fs_tools._defaults import FilesystemPathEnumerator
+from readonly_fs_tools._internal.path_enumerator import FilesystemPathEnumerator
 from readonly_fs_tools.common import GlobPattern
 from readonly_fs_tools.sandbox import Sandbox
 

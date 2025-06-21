@@ -4,8 +4,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from ._defaults import StreamingFileReader
-from ._protocols import FileReader
+from ._internal.file_reader import StreamingFileReader
 from .budget import OutputBudget
 from .common import FileContent, FileWindow
 from .sandbox import Sandbox
@@ -21,7 +20,7 @@ class ViewOutput(BaseModel):
 class Viewer:
     """Safe file viewer with sandbox constraints."""
 
-    def __init__(self, file_reader: FileReader) -> None:
+    def __init__(self, file_reader: StreamingFileReader) -> None:
         self.file_reader = file_reader
 
     @classmethod
