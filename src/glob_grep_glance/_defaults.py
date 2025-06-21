@@ -73,6 +73,7 @@ class StreamingFileReader(BaseModel):
 
         contents = ""
         truncated = False
+        lines_read = 0
 
         try:
             # Open file with UTF-8 encoding and ignore errors for binary files
@@ -87,7 +88,6 @@ class StreamingFileReader(BaseModel):
                     current_line += 1
 
                 # Read the requested number of lines
-                lines_read = 0
                 while lines_read < window.line_count:
                     line = f.readline()
                     if not line:  # EOF reached
@@ -103,7 +103,14 @@ class StreamingFileReader(BaseModel):
         except BudgetExceeded:
             truncated = True
 
-        return FileReadResult(contents=contents, truncated=truncated)
+        # Create actual window reflecting what was actually read
+        actual_window = FileWindow(
+            line_offset=window.line_offset, line_count=lines_read
+        )
+
+        return FileReadResult(
+            contents=contents, truncated=truncated, actual_window=actual_window
+        )
 
 
 class StreamingRegexSearcher(BaseModel):

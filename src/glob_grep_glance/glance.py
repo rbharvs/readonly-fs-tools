@@ -36,7 +36,9 @@ class Glancer:
         # Read the file window using the file reader
         result = self.file_reader.read_window(file_path, window, budget)
 
-        # Create FileContent from the result
-        view = FileContent(path=file_path, contents=result.contents, window=window)
+        # Create FileContent from the result using the actual window that was read
+        view = FileContent(
+            path=file_path, contents=result.contents, window=result.actual_window
+        )
 
         return GlanceOutput(view=view, truncated=result.truncated)
