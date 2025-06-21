@@ -6,7 +6,7 @@ from typing import Generator
 
 import pytest
 
-from readonly_fs_tools import FileWindow, Viewer, OutputBudget, Sandbox
+from readonly_fs_tools import FileWindow, OutputBudget, Sandbox, Viewer
 
 
 class TestViewerWindowBehavior:

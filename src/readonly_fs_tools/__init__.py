@@ -9,9 +9,9 @@ from .common import (
     GlobPattern,
     RegexPattern,
 )
-from .view import ViewOutput, Viewer
 from .glob import Globber, GlobOutput
 from .grep import GrepOutput, Grepper
+from .view import Viewer, ViewOutput
 
 __all__ = [
     # Base models and types

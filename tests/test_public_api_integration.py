@@ -8,14 +8,14 @@ import pytest
 
 from readonly_fs_tools import (
     FileWindow,
-    ViewOutput,
-    Viewer,
     Globber,
     GlobOutput,
     GrepOutput,
     Grepper,
     OutputBudget,
     Sandbox,
+    Viewer,
+    ViewOutput,
 )
 
 
