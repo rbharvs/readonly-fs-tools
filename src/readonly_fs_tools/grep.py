@@ -4,11 +4,11 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ._budget import BudgetExceeded, OutputBudget
-from ._defaults import FilesystemPathEnumerator, StreamingRegexSearcher
-from ._protocols import PathEnumerator, RegexSearcher
-from ._sandbox import Sandbox
+from ._internal.path_enumerator import FilesystemPathEnumerator
+from ._internal.regex_searcher import StreamingRegexSearcher
+from .budget import BudgetExceeded, OutputBudget
 from .common import FileContent, GlobPattern, RegexPattern
+from .sandbox import Sandbox
 
 
 class GrepOutput(BaseModel):
@@ -22,7 +22,9 @@ class Grepper:
     """Safe content searcher with sandbox constraints."""
 
     def __init__(
-        self, path_enum: PathEnumerator, regex_searcher: RegexSearcher
+        self,
+        path_enum: FilesystemPathEnumerator,
+        regex_searcher: StreamingRegexSearcher,
     ) -> None:
         self.path_enum = path_enum
         self.regex_searcher = regex_searcher
