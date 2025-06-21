@@ -306,14 +306,14 @@ class TestStreamingFileReader:
     def test_zero_line_count_window(
         self, temp_sandbox: tuple[Path, Sandbox], reader: StreamingFileReader
     ) -> None:
-        """Test window with zero line count (should be invalid)."""
+        """Test window with zero line count (now valid for actual windows)."""
         sandbox_dir, _ = temp_sandbox
         test_file = sandbox_dir / "test.txt"
         test_file.write_text("line 1\n", encoding="utf-8")
 
-        # FileWindow should reject line_count=0 during validation
-        with pytest.raises(ValueError):
-            FileWindow(line_offset=0, line_count=0)
+        # FileWindow should now accept line_count=0 (for actual window reporting)
+        window = FileWindow(line_offset=0, line_count=0)
+        assert window.line_count == 0
 
     def test_negative_line_offset_window(
         self, temp_sandbox: tuple[Path, Sandbox], reader: StreamingFileReader

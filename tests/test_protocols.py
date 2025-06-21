@@ -61,7 +61,11 @@ class TestFileReader:
     def test_protocol_compliance(self) -> None:
         """Test that a mock implementation satisfies the FileReader protocol."""
         mock_reader = Mock(spec=FileReader)
-        expected_result = FileReadResult(contents="test content", truncated=False)
+        expected_result = FileReadResult(
+            contents="test content",
+            truncated=False,
+            actual_window=FileWindow(line_offset=0, line_count=1),
+        )
         mock_reader.read_window = Mock(return_value=expected_result)
 
         file_path = Path("test.txt")
@@ -76,7 +80,11 @@ class TestFileReader:
     def test_budget_constraint_handling(self) -> None:
         """Test FileReader handles budget constraints properly."""
         mock_reader = Mock(spec=FileReader)
-        expected_result = FileReadResult(contents="truncated", truncated=True)
+        expected_result = FileReadResult(
+            contents="truncated",
+            truncated=True,
+            actual_window=FileWindow(line_offset=0, line_count=1),
+        )
         mock_reader.read_window = Mock(return_value=expected_result)
 
         file_path = Path("large_file.txt")
@@ -91,7 +99,11 @@ class TestFileReader:
     def test_window_parameters(self) -> None:
         """Test FileReader respects window parameters."""
         mock_reader = Mock(spec=FileReader)
-        expected_result = FileReadResult(contents="lines 5-15", truncated=False)
+        expected_result = FileReadResult(
+            contents="lines 5-15",
+            truncated=False,
+            actual_window=FileWindow(line_offset=5, line_count=10),
+        )
         mock_reader.read_window = Mock(return_value=expected_result)
 
         file_path = Path("data.txt")
@@ -179,7 +191,11 @@ class TestProtocolIntegration:
         # FileReader uses OutputBudget
         mock_reader = Mock(spec=FileReader)
         mock_reader.read_window = Mock(
-            return_value=FileReadResult(contents="", truncated=False)
+            return_value=FileReadResult(
+                contents="",
+                truncated=False,
+                actual_window=FileWindow(line_offset=0, line_count=0),
+            )
         )
         mock_reader.read_window(
             Path("test.txt"), FileWindow(line_offset=0, line_count=1), budget
