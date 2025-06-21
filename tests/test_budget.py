@@ -2,7 +2,7 @@
 
 import pytest
 
-from glob_grep_glance._budget import BudgetExceeded, OutputBudget
+from readonly_fs_tools._budget import BudgetExceeded, OutputBudget
 
 
 class TestBudgetExceeded:

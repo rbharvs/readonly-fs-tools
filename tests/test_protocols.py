@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import List
 from unittest.mock import Mock
 
-from glob_grep_glance._budget import OutputBudget
-from glob_grep_glance._protocols import FileReader, PathEnumerator, RegexSearcher
-from glob_grep_glance.common import (
+from readonly_fs_tools._budget import OutputBudget
+from readonly_fs_tools._protocols import FileReader, PathEnumerator, RegexSearcher
+from readonly_fs_tools.common import (
     FileContent,
     FileReadResult,
     FileWindow,

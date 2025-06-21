@@ -4,9 +4,9 @@ import tempfile
 from pathlib import Path
 from typing import List
 
-from glob_grep_glance._defaults import FilesystemPathEnumerator
-from glob_grep_glance._sandbox import Sandbox
-from glob_grep_glance.common import GlobPattern
+from readonly_fs_tools._defaults import FilesystemPathEnumerator
+from readonly_fs_tools._sandbox import Sandbox
+from readonly_fs_tools.common import GlobPattern
 
 
 class TestFilesystemPathEnumeratorBasics:
