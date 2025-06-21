@@ -11,7 +11,7 @@ jobs:
   ci:
     permissions:
       contents: read
-    uses: .github/workflows/ci.yaml@main
+    uses: rbharvs/readonly-fs-tools/.github/workflows/ci.yaml@main
 
   publish:
     permissions:
