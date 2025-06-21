@@ -8,8 +8,8 @@ from typing import Generator
 import pytest
 
 from readonly_fs_tools._defaults import StreamingRegexSearcher
-from readonly_fs_tools._sandbox import Sandbox, SandboxViolation
 from readonly_fs_tools.common import FileContent, FileWindow, RegexPattern
+from readonly_fs_tools.sandbox import Sandbox, SandboxViolation
 
 
 class TestStreamingRegexSearcher:

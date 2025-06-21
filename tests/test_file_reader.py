@@ -6,10 +6,10 @@ from typing import Generator
 
 import pytest
 
-from readonly_fs_tools._budget import OutputBudget
 from readonly_fs_tools._defaults import StreamingFileReader
-from readonly_fs_tools._sandbox import Sandbox, SandboxViolation
+from readonly_fs_tools.budget import OutputBudget
 from readonly_fs_tools.common import FileWindow
+from readonly_fs_tools.sandbox import Sandbox, SandboxViolation
 
 
 class TestStreamingFileReader:

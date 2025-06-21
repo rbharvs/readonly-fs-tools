@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, List, Protocol
 
-from ._budget import OutputBudget
+from .budget import OutputBudget
 from .common import FileContent, FileReadResult, FileWindow, GlobPattern, RegexPattern
 
 

@@ -275,7 +275,7 @@ class TestPublicAPIIntegration:
         budget = OutputBudget(limit=1000)
 
         # Should raise SandboxViolation
-        from readonly_fs_tools._sandbox import SandboxViolation
+        from readonly_fs_tools.sandbox import SandboxViolation
 
         with pytest.raises(SandboxViolation):
             viewr.view(outside_file, window, budget)

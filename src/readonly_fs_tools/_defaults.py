@@ -9,9 +9,9 @@ from typing import Iterable, List, Set
 
 from pydantic import BaseModel
 
-from ._budget import BudgetExceeded, OutputBudget
-from ._sandbox import Sandbox
+from .budget import BudgetExceeded, OutputBudget
 from .common import FileContent, FileReadResult, FileWindow, GlobPattern, RegexPattern
+from .sandbox import Sandbox
 
 
 class FilesystemPathEnumerator(BaseModel):

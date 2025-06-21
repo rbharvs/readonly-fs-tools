@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import List
 from unittest.mock import Mock
 
-from readonly_fs_tools._budget import OutputBudget
 from readonly_fs_tools._protocols import FileReader, PathEnumerator, RegexSearcher
+from readonly_fs_tools.budget import OutputBudget
 from readonly_fs_tools.common import (
     FileContent,
     FileReadResult,

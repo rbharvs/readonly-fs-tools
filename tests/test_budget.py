@@ -2,7 +2,7 @@
 
 import pytest
 
-from readonly_fs_tools._budget import BudgetExceeded, OutputBudget
+from readonly_fs_tools.budget import BudgetExceeded, OutputBudget
 
 
 class TestBudgetExceeded:

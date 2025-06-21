@@ -4,11 +4,11 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from ._budget import OutputBudget
 from ._defaults import StreamingFileReader
 from ._protocols import FileReader
-from ._sandbox import Sandbox
+from .budget import OutputBudget
 from .common import FileContent, FileWindow
+from .sandbox import Sandbox
 
 
 class ViewOutput(BaseModel):
